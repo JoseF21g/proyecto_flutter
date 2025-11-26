@@ -157,6 +157,7 @@ class _ListadoEventoFiltroState extends State<ListadoEventoFiltro> {
               final lugar = evento['lugar'] ?? 'Sin ubicación';
               final fechaHora = evento['fecha_hora'] as Timestamp?;
               final categoria = evento['nombre_categoria'] ?? '';
+              final nombreFoto = evento['nombre_foto'] ?? '';
 
               return Slidable(
                 key: ValueKey(eventoId),
@@ -188,7 +189,23 @@ class _ListadoEventoFiltroState extends State<ListadoEventoFiltro> {
                     ),
                     leading: CircleAvatar(
                       backgroundColor: Color(kPrimaryColor),
-                      child: const Icon(Icons.event, color: Colors.white),
+                      radius: 24,
+                      child: nombreFoto.isNotEmpty
+                          ? ClipOval(
+                              child: Image.asset(
+                                'assets/img/$nombreFoto',
+                                width: 48,
+                                height: 48,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return const Icon(
+                                    Icons.event,
+                                    color: Colors.white,
+                                  );
+                                },
+                              ),
+                            )
+                          : const Icon(Icons.event, color: Colors.white),
                     ),
                     title: Text(
                       titulo,
@@ -265,7 +282,7 @@ class _ListadoEventoFiltroState extends State<ListadoEventoFiltro> {
                     trailing: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Color(kSecondaryColor),
+                        color: Color(kPrimaryColor),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
@@ -273,7 +290,7 @@ class _ListadoEventoFiltroState extends State<ListadoEventoFiltro> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: Color(kPrimaryColor),
+                          color: Color(kSecondaryLightColor),
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -281,8 +298,10 @@ class _ListadoEventoFiltroState extends State<ListadoEventoFiltro> {
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) =>
-                              DetalleEventoEliminar(eventoId: eventoId),
+                          builder: (context) => DetalleEventoEliminar(
+                            eventoId: eventoId,
+                            nombreFoto: nombreFoto,
+                          ),
                         ),
                       );
                     },

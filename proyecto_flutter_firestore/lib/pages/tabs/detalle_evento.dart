@@ -5,8 +5,13 @@ import '../../service/evento_services.dart';
 
 class DetalleEvento extends StatelessWidget {
   final String eventoId;
+  final String nombreFoto;
 
-  const DetalleEvento({super.key, required this.eventoId});
+  const DetalleEvento({
+    super.key,
+    required this.eventoId,
+    this.nombreFoto = '',
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -72,6 +77,9 @@ class DetalleEvento extends StatelessWidget {
           final fechaHora = evento['fecha_hora'] as Timestamp?;
           final categoria = evento['nombre_categoria'] ?? 'Sin categoría';
           final autor = evento['autor'] ?? 'Desconocido';
+          final nombreFotoEvento = nombreFoto.isNotEmpty
+              ? nombreFoto
+              : (evento['nombre_foto'] ?? '');
 
           return SingleChildScrollView(
             child: Column(
@@ -91,7 +99,45 @@ class DetalleEvento extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.event, size: 80, color: Colors.white),
+                        // Mostrar foto o icono
+                        nombreFotoEvento.isNotEmpty
+                            ? Container(
+                                width: 100,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 3,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black26,
+                                      blurRadius: 10,
+                                      offset: Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipOval(
+                                  child: Image.asset(
+                                    'assets/img/$nombreFotoEvento',
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        color: Colors.white24,
+                                        child: Icon(
+                                          Icons.event,
+                                          size: 50,
+                                          color: Colors.white,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              )
+                            : Icon(Icons.event, size: 80, color: Colors.white),
                         const SizedBox(height: 16),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24),

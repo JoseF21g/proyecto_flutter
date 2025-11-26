@@ -19,7 +19,6 @@ class ListadoEvento extends StatelessWidget {
               child: CircularProgressIndicator(color: Color(kPrimaryColor)),
             );
           }
-
           // Error
           if (snapshot.hasError) {
             return Center(
@@ -66,7 +65,6 @@ class ListadoEvento extends StatelessWidget {
 
           // Lista de eventos
           final eventos = snapshot.data!.docs;
-
           return ListView.builder(
             padding: const EdgeInsets.all(16),
             itemCount: eventos.length,
@@ -78,21 +76,41 @@ class ListadoEvento extends StatelessWidget {
               final lugar = evento['lugar'] ?? 'Sin ubicación';
               final fechaHora = evento['fecha_hora'] as Timestamp?;
               final categoria = evento['nombre_categoria'] ?? '';
+              final nombreFoto = evento['nombre_foto'] ?? '';
 
+              // Card y adrento tiene el list tile del evento
               return Card(
                 margin: const EdgeInsets.only(bottom: 12),
                 elevation: 2,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
+                // list tile del evento
                 child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(
                     horizontal: 16,
                     vertical: 8,
                   ),
+                  // icono del evento
                   leading: CircleAvatar(
                     backgroundColor: Color(kPrimaryColor),
-                    child: const Icon(Icons.event, color: Colors.white),
+                    radius: 24,
+                    child: nombreFoto.isNotEmpty
+                        ? ClipOval(
+                            child: Image.asset(
+                              'assets/img/$nombreFoto',
+                              width: 48,
+                              height: 48,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return const Icon(
+                                  Icons.event,
+                                  color: Colors.white,
+                                );
+                              },
+                            ),
+                          )
+                        : const Icon(Icons.event, color: Colors.white),
                   ),
                   title: Text(
                     titulo,
@@ -150,7 +168,7 @@ class ListadoEvento extends StatelessWidget {
                   trailing: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Color(kSecondaryColor),
+                      color: Color(kPrimaryColor),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -158,7 +176,7 @@ class ListadoEvento extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: Color(kPrimaryColor),
+                        color: Color(kSecondaryLightColor),
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -166,7 +184,10 @@ class ListadoEvento extends StatelessWidget {
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => DetalleEvento(eventoId: eventoId),
+                        builder: (context) => DetalleEvento(
+                          eventoId: eventoId,
+                          nombreFoto: nombreFoto,
+                        ),
                       ),
                     );
                   },

@@ -11,52 +11,35 @@ class GoogleSignInService {
 
   static Future<UserCredential?> signInWithGoogle() async {
     try {
-      print('🔧 [SERVICE] Iniciando Google Sign-In');
-
       // Primero, intentar cerrar sesión para limpiar estado
       await _googleSignIn.signOut();
-      print('🧹 [SERVICE] Estado limpiado');
-
-      print('📱 [SERVICE] Llamando a signIn()...');
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
-        print('⚠️ [SERVICE] Usuario canceló la selección');
         return null;
       }
-
-      print('✅ [SERVICE] Usuario seleccionado: ${googleUser.email}');
-      print('🔑 [SERVICE] Obteniendo tokens...');
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
 
       if (googleAuth.accessToken == null || googleAuth.idToken == null) {
-        print('❌ [SERVICE] Error: tokens no disponibles');
         throw FirebaseAuthException(
           code: 'ERROR_MISSING_TOKEN',
           message: 'No se pudo obtener el token de autenticación',
         );
       }
 
-      print('✅ [SERVICE] Tokens obtenidos');
-      print('🎫 [SERVICE] Creando credential...');
-
       final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
-
-      print('🔥 [SERVICE] Autenticando con Firebase...');
       final UserCredential userCredential = await _auth.signInWithCredential(
         credential,
       );
 
-      print('✅ [SERVICE] Autenticado con Firebase');
       final User? user = userCredential.user;
 
       if (user != null) {
-        print('💾 [SERVICE] Guardando en Firestore...');
         final userDoc = FirebaseFirestore.instance
             .collection('users')
             .doc(user.uid);
@@ -71,20 +54,10 @@ class GoogleSignInService {
             'provider': 'google',
             'createdAt': FieldValue.serverTimestamp(),
           });
-          print('✅ [SERVICE] Datos guardados en Firestore');
-        } else {
-          print('ℹ️ [SERVICE] Usuario ya existe en Firestore');
         }
       }
-
-      print('🎉 [SERVICE] Login completado exitosamente!');
       return userCredential;
     } on PlatformException catch (e) {
-      print(
-        '❌ [SERVICE PLATFORM ERROR] Code: ${e.code}, Message: ${e.message}',
-      );
-      print('❌ [SERVICE PLATFORM ERROR] Details: ${e.details}');
-
       // Error 10 es DEVELOPER_ERROR - problema de configuración
       if (e.code == 'sign_in_failed' && e.message?.contains('10') == true) {
         throw Exception(
@@ -99,7 +72,6 @@ class GoogleSignInService {
 
       rethrow;
     } catch (e) {
-      print('❌ [SERVICE ERROR] $e');
       rethrow;
     }
   }
@@ -110,7 +82,6 @@ class GoogleSignInService {
       await _googleSignIn.signOut();
       await _auth.signOut();
     } catch (e) {
-      print('Error signing out: $e');
       throw e;
     }
   }

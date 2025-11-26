@@ -21,7 +21,7 @@ class _AgregarEventoState extends State<AgregarEvento> {
   DateTime? _fechaSeleccionada;
   TimeOfDay? _horaSeleccionada;
   bool _isLoading = false;
-  List<String> _categorias = [];
+  Map<String, String> _categoriasConImagenes = {}; // nombre_categoria -> nombre_imagen
 
   @override
   void initState() {
@@ -36,12 +36,12 @@ class _AgregarEventoState extends State<AgregarEvento> {
       _autorController.text = user.email ?? '';
     }
 
-    // Cargar categorías
-    final categorias = await EventoService.getCategorias();
+    // Cargar categorías con sus imágenes
+    final categorias = await EventoService.getCategoriasConImagenes();
     setState(() {
-      _categorias = categorias;
-      if (_categorias.isNotEmpty) {
-        _categoriaSeleccionada = _categorias.first;
+      _categoriasConImagenes = categorias;
+      if (_categoriasConImagenes.isNotEmpty) {
+        _categoriaSeleccionada = _categoriasConImagenes.keys.first;
       }
     });
   }
@@ -60,15 +60,11 @@ class _AgregarEventoState extends State<AgregarEvento> {
       initialDate: DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime(2100),
+      locale: const Locale('es', 'ES'),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: Color(kPrimaryColor),
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: Colors.black,
-            ),
+            colorScheme: ColorScheme.light(primary: Color(kPrimaryColor), onPrimary: Colors.white, surface: Colors.white, onSurface: Colors.black),
           ),
           child: child!,
         );
@@ -89,12 +85,7 @@ class _AgregarEventoState extends State<AgregarEvento> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
-              primary: Color(kPrimaryColor),
-              onPrimary: Colors.white,
-              surface: Colors.white,
-              onSurface: Colors.black,
-            ),
+            colorScheme: ColorScheme.light(primary: Color(kPrimaryColor), onPrimary: Colors.white, surface: Colors.white, onSurface: Colors.black),
           ),
           child: child!,
         );
@@ -109,20 +100,7 @@ class _AgregarEventoState extends State<AgregarEvento> {
   }
 
   String _formatearFecha(DateTime fecha) {
-    List<String> meses = [
-      'enero',
-      'febrero',
-      'marzo',
-      'abril',
-      'mayo',
-      'junio',
-      'julio',
-      'agosto',
-      'septiembre',
-      'octubre',
-      'noviembre',
-      'diciembre',
-    ];
+    List<String> meses = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
     return '${fecha.day} de ${meses[fecha.month - 1]} de ${fecha.year}';
   }
 
@@ -138,32 +116,17 @@ class _AgregarEventoState extends State<AgregarEvento> {
     }
 
     if (_fechaSeleccionada == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor selecciona una fecha'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor selecciona una fecha'), backgroundColor: Colors.red));
       return;
     }
 
     if (_horaSeleccionada == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor selecciona una hora'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor selecciona una hora'), backgroundColor: Colors.red));
       return;
     }
 
     if (_categoriaSeleccionada == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor selecciona una categoría'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor selecciona una categoría'), backgroundColor: Colors.red));
       return;
     }
 
@@ -172,21 +135,9 @@ class _AgregarEventoState extends State<AgregarEvento> {
     });
 
     // Combinar fecha y hora
-    final fechaHora = DateTime(
-      _fechaSeleccionada!.year,
-      _fechaSeleccionada!.month,
-      _fechaSeleccionada!.day,
-      _horaSeleccionada!.hour,
-      _horaSeleccionada!.minute,
-    );
+    final fechaHora = DateTime(_fechaSeleccionada!.year, _fechaSeleccionada!.month, _fechaSeleccionada!.day, _horaSeleccionada!.hour, _horaSeleccionada!.minute);
 
-    final exito = await EventoService.agregarEvento(
-      titulo: _tituloController.text.trim(),
-      lugar: _lugarController.text.trim(),
-      nombreCategoria: _categoriaSeleccionada!,
-      fechaHora: fechaHora,
-      autor: _autorController.text.trim(),
-    );
+    final exito = await EventoService.agregarEvento(titulo: _tituloController.text.trim(), lugar: _lugarController.text.trim(), nombreCategoria: _categoriaSeleccionada!, nombreFoto: _categoriasConImagenes[_categoriaSeleccionada!] ?? '', fechaHora: fechaHora, autor: _autorController.text.trim());
 
     setState(() {
       _isLoading = false;
@@ -194,20 +145,10 @@ class _AgregarEventoState extends State<AgregarEvento> {
 
     if (mounted) {
       if (exito) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Evento creado exitosamente'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Evento creado exitosamente'), backgroundColor: Colors.green));
         Navigator.of(context).pop();
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Error al crear el evento'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error al crear el evento'), backgroundColor: Colors.red));
       }
     }
   }
@@ -215,16 +156,9 @@ class _AgregarEventoState extends State<AgregarEvento> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Agregar Evento'),
-        backgroundColor: Color(kPrimaryColor),
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
+      appBar: AppBar(title: const Text('Agregar Evento'), backgroundColor: Color(kPrimaryColor), foregroundColor: Colors.white, elevation: 0),
       body: _isLoading
-          ? Center(
-              child: CircularProgressIndicator(color: Color(kPrimaryColor)),
-            )
+          ? Center(child: CircularProgressIndicator(color: Color(kPrimaryColor)))
           : SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
               child: Form(
@@ -238,19 +172,11 @@ class _AgregarEventoState extends State<AgregarEvento> {
                       decoration: InputDecoration(
                         labelText: 'Título del Evento',
                         hintText: 'Ej: Concierto de Rock',
-                        prefixIcon: Icon(
-                          Icons.title,
-                          color: Color(kPrimaryColor),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        prefixIcon: Icon(Icons.title, color: Color(kPrimaryColor)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Color(kPrimaryColor),
-                            width: 2,
-                          ),
+                          borderSide: BorderSide(color: Color(kPrimaryColor), width: 2),
                         ),
                       ),
                       validator: (value) {
@@ -268,19 +194,11 @@ class _AgregarEventoState extends State<AgregarEvento> {
                       decoration: InputDecoration(
                         labelText: 'Lugar',
                         hintText: 'Ej: Estadio Nacional',
-                        prefixIcon: Icon(
-                          Icons.location_on,
-                          color: Color(kPrimaryColor),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        prefixIcon: Icon(Icons.location_on, color: Color(kPrimaryColor)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Color(kPrimaryColor),
-                            width: 2,
-                          ),
+                          borderSide: BorderSide(color: Color(kPrimaryColor), width: 2),
                         ),
                       ),
                       validator: (value) {
@@ -297,26 +215,15 @@ class _AgregarEventoState extends State<AgregarEvento> {
                       value: _categoriaSeleccionada,
                       decoration: InputDecoration(
                         labelText: 'Categoría',
-                        prefixIcon: Icon(
-                          Icons.category,
-                          color: Color(kPrimaryColor),
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        prefixIcon: Icon(Icons.category, color: Color(kPrimaryColor)),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Color(kPrimaryColor),
-                            width: 2,
-                          ),
+                          borderSide: BorderSide(color: Color(kPrimaryColor), width: 2),
                         ),
                       ),
-                      items: _categorias.map((categoria) {
-                        return DropdownMenuItem(
-                          value: categoria,
-                          child: Text(categoria),
-                        );
+                      items: _categoriasConImagenes.keys.map((categoria) {
+                        return DropdownMenuItem(value: categoria, child: Text(categoria));
                       }).toList(),
                       onChanged: (value) {
                         setState(() {
@@ -338,31 +245,14 @@ class _AgregarEventoState extends State<AgregarEvento> {
                       child: InputDecorator(
                         decoration: InputDecoration(
                           labelText: 'Fecha',
-                          prefixIcon: Icon(
-                            Icons.calendar_today,
-                            color: Color(kPrimaryColor),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                          prefixIcon: Icon(Icons.calendar_today, color: Color(kPrimaryColor)),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: Color(kPrimaryColor),
-                              width: 2,
-                            ),
+                            borderSide: BorderSide(color: Color(kPrimaryColor), width: 2),
                           ),
                         ),
-                        child: Text(
-                          _fechaSeleccionada == null
-                              ? 'Seleccionar fecha'
-                              : _formatearFecha(_fechaSeleccionada!),
-                          style: TextStyle(
-                            color: _fechaSeleccionada == null
-                                ? Colors.grey
-                                : Colors.black,
-                          ),
-                        ),
+                        child: Text(_fechaSeleccionada == null ? 'Seleccionar fecha' : _formatearFecha(_fechaSeleccionada!), style: TextStyle(color: _fechaSeleccionada == null ? Colors.grey : Colors.black)),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -373,31 +263,14 @@ class _AgregarEventoState extends State<AgregarEvento> {
                       child: InputDecorator(
                         decoration: InputDecoration(
                           labelText: 'Hora',
-                          prefixIcon: Icon(
-                            Icons.access_time,
-                            color: Color(kPrimaryColor),
-                          ),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                          prefixIcon: Icon(Icons.access_time, color: Color(kPrimaryColor)),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           focusedBorder: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide(
-                              color: Color(kPrimaryColor),
-                              width: 2,
-                            ),
+                            borderSide: BorderSide(color: Color(kPrimaryColor), width: 2),
                           ),
                         ),
-                        child: Text(
-                          _horaSeleccionada == null
-                              ? 'Seleccionar hora'
-                              : _formatearHora(_horaSeleccionada!),
-                          style: TextStyle(
-                            color: _horaSeleccionada == null
-                                ? Colors.grey
-                                : Colors.black,
-                          ),
-                        ),
+                        child: Text(_horaSeleccionada == null ? 'Seleccionar hora' : _formatearHora(_horaSeleccionada!), style: TextStyle(color: _horaSeleccionada == null ? Colors.grey : Colors.black)),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -409,9 +282,7 @@ class _AgregarEventoState extends State<AgregarEvento> {
                       decoration: InputDecoration(
                         labelText: 'Autor',
                         prefixIcon: Icon(Icons.person, color: Colors.grey),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                         filled: true,
                         fillColor: Colors.grey.shade200,
                       ),
@@ -422,20 +293,12 @@ class _AgregarEventoState extends State<AgregarEvento> {
                     ElevatedButton.icon(
                       onPressed: _isLoading ? null : _guardarEvento,
                       icon: const Icon(Icons.save),
-                      label: const Text(
-                        'Crear Evento',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      label: const Text('Crear Evento', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Color(kPrimaryColor),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         elevation: 3,
                       ),
                     ),

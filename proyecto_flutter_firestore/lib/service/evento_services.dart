@@ -3,7 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class EventoService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  // Stream para obtener todos los eventos en tiempo real
+  // Stream para obtener todos los eventos
   static Stream<QuerySnapshot> getEventosStream() {
     return _firestore
         .collection('eventos')
@@ -11,7 +11,7 @@ class EventoService {
         .snapshots();
   }
 
-  // Método auxiliar para formatear la fecha (solo fecha, sin hora)
+  // Metodo auxiliar para formatear la fecha (solo fecha, sin hora)
   static String formatearFecha(Timestamp? timestamp) {
     if (timestamp == null) return 'Sin fecha';
 
@@ -28,6 +28,7 @@ class EventoService {
     required String titulo,
     required String lugar,
     required String nombreCategoria,
+    required String nombreFoto,
     required DateTime fechaHora,
     required String autor,
   }) async {
@@ -36,23 +37,22 @@ class EventoService {
         'titulo': titulo,
         'lugar': lugar,
         'nombre_categoria': nombreCategoria,
+        'nombre_foto': nombreFoto,
         'fecha_hora': Timestamp.fromDate(fechaHora),
         'autor': autor,
       });
-      print(' Evento agregado exitosamente');
       return true;
     } catch (e) {
-      print('Error al agregar evento: $e');
       return false;
     }
   }
 
-  // Obtener categorías disponibles (si las tienes en Firestore)
+  // Obtener categorias
   static Stream<QuerySnapshot> getCategoriasStream() {
     return _firestore.collection('categorias').snapshots();
   }
 
-  // Obtener categorías como lista
+  // Obtener categorias como lista
   static Future<List<String>> getCategorias() async {
     try {
       QuerySnapshot snapshot = await _firestore.collection('categorias').get();
@@ -61,12 +61,30 @@ class EventoService {
         return data['nombre'] as String? ?? '';
       }).toList();
     } catch (e) {
-      print('Error al obtener categorías: $e');
       return [];
     }
   }
 
-  // Stream para obtener eventos de un usuario específico
+  // Obtener categorias con sus imágenes
+  static Future<Map<String, String>> getCategoriasConImagenes() async {
+    try {
+      QuerySnapshot snapshot = await _firestore.collection('categorias').get();
+      Map<String, String> categoriasMap = {};
+      for (var doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        String nombre = data['nombre'] as String? ?? '';
+        String nombreFoto = data['nombre_foto'] as String? ?? '';
+        if (nombre.isNotEmpty) {
+          categoriasMap[nombre] = nombreFoto;
+        }
+      }
+      return categoriasMap;
+    } catch (e) {
+      return {};
+    }
+  }
+
+  // Stream para obtener eventos del usuario registrado
   static Stream<QuerySnapshot> getEventosPorUsuarioStream(String emailUsuario) {
     return _firestore
         .collection('eventos')
@@ -78,15 +96,13 @@ class EventoService {
   static Future<bool> eliminarEvento(String eventoId) async {
     try {
       await _firestore.collection('eventos').doc(eventoId).delete();
-      print('Evento eliminado exitosamente');
       return true;
     } catch (e) {
-      print('Error al eliminar evento: $e');
       return false;
     }
   }
 
-  // Obtener un evento específico por ID
+  // Obtener un evento especifico por ID (cuando se selecciona uno de la lista)
   static Future<Map<String, dynamic>?> getEventoPorId(String eventoId) async {
     try {
       DocumentSnapshot doc = await _firestore
@@ -98,17 +114,16 @@ class EventoService {
       }
       return null;
     } catch (e) {
-      print('Error al obtener evento: $e');
       return null;
     }
   }
 
-  // Stream para obtener un evento específico en tiempo real
+  // Stream para obtener un evento especifico en tiempo real
   static Stream<DocumentSnapshot> getEventoStream(String eventoId) {
     return _firestore.collection('eventos').doc(eventoId).snapshots();
   }
 
-  // Método auxiliar para formatear la fecha y hora completa
+  // Método auxiliar para formatear la fecha y hora completa se usa en el detalle del evento
   static String formatearFechaHora(Timestamp? timestamp) {
     if (timestamp == null) return 'Sin fecha';
 

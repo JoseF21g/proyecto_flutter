@@ -5,8 +5,13 @@ import '../../service/evento_services.dart';
 
 class DetalleEventoEliminar extends StatelessWidget {
   final String eventoId;
+  final String nombreFoto;
 
-  const DetalleEventoEliminar({super.key, required this.eventoId});
+  const DetalleEventoEliminar({
+    super.key,
+    required this.eventoId,
+    this.nombreFoto = '',
+  });
 
   Future<void> _confirmarEliminar(BuildContext context, String titulo) async {
     final confirmar = await showDialog<bool>(
@@ -38,7 +43,7 @@ class DetalleEventoEliminar extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              exito ? '✅ Evento eliminado' : '❌ Error al eliminar el evento',
+              exito ? 'Evento eliminado' : 'Error al eliminar el evento',
             ),
             backgroundColor: exito ? Colors.green : Colors.red,
           ),
@@ -114,6 +119,9 @@ class DetalleEventoEliminar extends StatelessWidget {
           final fechaHora = evento['fecha_hora'] as Timestamp?;
           final categoria = evento['nombre_categoria'] ?? 'Sin categoría';
           final autor = evento['autor'] ?? 'Desconocido';
+          final nombreFotoEvento = nombreFoto.isNotEmpty
+              ? nombreFoto
+              : (evento['nombre_foto'] ?? '');
 
           return SingleChildScrollView(
             child: Column(
@@ -133,7 +141,45 @@ class DetalleEventoEliminar extends StatelessWidget {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.event, size: 80, color: Colors.white),
+                        // Mostrar foto o icono
+                        nombreFotoEvento.isNotEmpty
+                            ? Container(
+                                width: 100,
+                                height: 100,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 3,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black26,
+                                      blurRadius: 10,
+                                      offset: Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipOval(
+                                  child: Image.asset(
+                                    'assets/img/$nombreFotoEvento',
+                                    width: 100,
+                                    height: 100,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) {
+                                      return Container(
+                                        color: Colors.white24,
+                                        child: Icon(
+                                          Icons.event,
+                                          size: 50,
+                                          color: Colors.white,
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                ),
+                              )
+                            : Icon(Icons.event, size: 80, color: Colors.white),
                         const SizedBox(height: 16),
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 24),
