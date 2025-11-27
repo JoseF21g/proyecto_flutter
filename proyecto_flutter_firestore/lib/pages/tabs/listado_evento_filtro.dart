@@ -132,7 +132,7 @@ class _ListadoEventoFiltroState extends State<ListadoEventoFiltro> {
           // Lista de eventos - ordenar en el cliente
           final eventos = snapshot.data!.docs;
 
-          // Ordenar por fecha_hora de forma descendente (más recientes primero)
+          // Ordenar por fecha_hora de forma descendente recientes primero
           eventos.sort((a, b) {
             final dataA = a.data() as Map<String, dynamic>;
             final dataB = b.data() as Map<String, dynamic>;

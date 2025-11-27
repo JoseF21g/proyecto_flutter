@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:proyecto_flutter_firestore/constant.dart';
 import '../../service/evento_services.dart';
+import 'widgets/info_card.dart';
 
 class DetalleEventoEliminar extends StatelessWidget {
   final String eventoId;
@@ -232,7 +233,7 @@ class DetalleEventoEliminar extends StatelessWidget {
                       const SizedBox(height: 32),
 
                       // Fecha y hora
-                      _buildInfoCard(
+                      InfoCard(
                         icon: Icons.calendar_today,
                         title: 'Fecha y Hora',
                         content: EventoService.formatearFechaHora(fechaHora),
@@ -240,7 +241,7 @@ class DetalleEventoEliminar extends StatelessWidget {
                       const SizedBox(height: 16),
 
                       // Lugar
-                      _buildInfoCard(
+                      InfoCard(
                         icon: Icons.location_on,
                         title: 'Lugar',
                         content: lugar,
@@ -248,7 +249,7 @@ class DetalleEventoEliminar extends StatelessWidget {
                       const SizedBox(height: 16),
 
                       // Organizador
-                      _buildInfoCard(
+                      InfoCard(
                         icon: Icons.person,
                         title: 'Organizador',
                         content: autor,
@@ -322,58 +323,6 @@ class DetalleEventoEliminar extends StatelessWidget {
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildInfoCard({
-    required IconData icon,
-    required String title,
-    required String content,
-  }) {
-    return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Color(kSecondaryLightColor),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: Color(kPrimaryColor), size: 28),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey.shade600,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    content,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
